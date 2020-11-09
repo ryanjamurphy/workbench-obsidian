@@ -26,7 +26,7 @@ export default class WorkbenchPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'workbench-link-current-note',
-			name: 'Link the current note in your Workbench.',
+			name: 'Link the current note/page in your Workbench.',
 			// callback: () => {
 			// 	console.log('Simple Callback');
 			// },
@@ -44,7 +44,7 @@ export default class WorkbenchPlugin extends Plugin {
 
 		this.addCommand({ 
 			id: 'workbench-embed-current-note',
-			name: 'Embed the current note in your Workbench.',
+			name: 'Embed the current note/page in your Workbench.',
 			// callback: () => {
 			// 	console.log('Simple Callback');
 			// },
@@ -62,7 +62,7 @@ export default class WorkbenchPlugin extends Plugin {
 
 		this.addCommand({ 
 			id: 'workbench-link-current-block',
-			name: 'Link the current block in your Workbench.',
+			name: 'Link the current line/block in your Workbench.',
 			// callback: () => {
 			// 	console.log('Simple Callback');
 			// },
@@ -80,7 +80,7 @@ export default class WorkbenchPlugin extends Plugin {
 
 		this.addCommand({ 
 			id: 'workbench-embed-current-block',
-			name: 'Embed the current block into your Workbench.',
+			name: 'Embed the current line/block into your Workbench.',
 			// callback: () => {
 			// 	console.log('Simple Callback');
 			// },
@@ -98,7 +98,7 @@ export default class WorkbenchPlugin extends Plugin {
 
 		this.addCommand({ 
 			id: 'workbench-copy-current-block',
-			name: 'Copy the current block into your Workbench.',
+			name: 'Copy the current line/block into your Workbench.',
 			// callback: () => {
 			// 	console.log('Simple Callback');
 			// },
@@ -114,9 +114,41 @@ export default class WorkbenchPlugin extends Plugin {
 			}
 		});
 
-		
+		this.addCommand({ 
+			id: 'workbench-link-current-section',
+			name: 'Link the current heading/section into your Workbench.',
+			// callback: () => {
+			// 	console.log('Simple Callback');
+			// },
+			checkCallback: (checking: boolean) => { 
+				let leaf = this.app.workspace.activeLeaf;
+				if (leaf) {
+					if (!checking) {
+						this.linkSectionInWorkbench();
+					}
+					return true;
+				}
+				return false;
+			}
+		});
 
-
+		this.addCommand({ 
+			id: 'workbench-embed-current-section',
+			name: 'Embed the current heading/section into your Workbench.',
+			// callback: () => {
+			// 	console.log('Simple Callback');
+			// },
+			checkCallback: (checking: boolean) => { 
+				let leaf = this.app.workspace.activeLeaf;
+				if (leaf) {
+					if (!checking) {
+						this.embedSectionInWorkbench();
+					}
+					return true;
+				}
+				return false;
+			}
+		});
 
 		this.addSettingTab(new WorkbenchSettingTab(this.app, this));
 
@@ -124,9 +156,25 @@ export default class WorkbenchPlugin extends Plugin {
 			console.log('codemirror', cm);
 		})); */
 
-		/*this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});*/
+		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
+			if (this.settings.altClickType != "Nothing") {
+				if (evt.altKey) {
+					if ((evt.target.className === "internal-link") || (evt.target.className === "cm-hmd-internal-link")) {
+						console.log("alt");
+						this.altClick(evt);
+					}
+				}
+			}
+			if (this.settings.metaAltClickType != "Nothing") {
+				if (evt.metaKey && evt.altKey) {
+					console.log("click", evt);
+					if ((evt.target.className.includes("CodeMirror-line")) || evt.target.className.includes("cm")) {
+						console.log("meta+alt");
+						this.metaAltClick(evt);
+					}
+				}
+			}
+		});
 
 		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
@@ -162,7 +210,7 @@ export default class WorkbenchPlugin extends Plugin {
 			let previousNoteText = "";
 			obsidianApp.vault.read(workbenchNoteFile).then(function (result) {
 				let previousNoteText = result;
-				console.log("Previous note text:\n" + previousNoteText);
+				//console.log("Previous note text:\n" + previousNoteText);
 				let newNoteText = previousNoteText + "\n\n" + linePrefix + theMaterial;
 				obsidianApp.vault.modify(workbenchNoteFile, newNoteText);
 				new Notice("Added " + saveAction + " to the workbench.")
@@ -170,14 +218,16 @@ export default class WorkbenchPlugin extends Plugin {
 		}
 	}
 
-	createBlockHash(inputText: string): number { // Credit to http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
-				let hash = 0, i, chr;
-				for (i = 0; i < inputText.length; i++) {
-					chr   = inputText.charCodeAt(i);
-					hash  = ((hash << 5) - hash) + chr;
-					hash |= 0; // Convert to 32bit integer
-				}
-				return hash;
+	createBlockHash(inputText: string): string { // Credit to https://stackoverflow.com/a/1349426
+			let obsidianApp = this.app;
+
+			let result = '';
+			var characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+			var charactersLength = characters.length;
+			for ( var i = 0; i < 7; i++ ) {
+			   result += characters.charAt(Math.floor(Math.random() * charactersLength));
+			}
+			return result;
 	}
 
 	getBlock(inputLine: string, noteFile: object): string { //Returns the string of a block ID if block is found, or "" if not.
@@ -199,6 +249,72 @@ export default class WorkbenchPlugin extends Plugin {
 			return blockString;
 		} 
 		return blockString;
+	}
+
+	altClick(someMouseEvent: Event) {
+		let obsidianApp = this.app;
+
+		let clickType = this.settings.altClickType;
+
+		let linkPrefix = "";
+		if (clickType === "Embed") {
+			linkPrefix = "!";
+		}
+
+		let newMaterial = linkPrefix + "[[" + someMouseEvent.target.innerText + "]]";
+		this.saveToWorkbench(newMaterial, "a link to the selected note");
+	}
+
+	metaAltClick(someMouseEvent: Event) {
+		console.log("Meta alt click");
+
+		let obsidianApp = this.app;
+
+		// Get the file and create a link to it
+		let currentNoteFile = obsidianApp.workspace.activeLeaf.view.file;
+		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
+
+		let clickType = this.settings.metaAltClickType;
+
+		let linkPrefix = "";
+
+		if (clickType === "Embed") {
+			linkPrefix = "!";
+		}
+
+		// TKTKTK gotta find a way to get the list item's parent line
+
+		if ((someMouseEvent.target.className.includes("cm"))) {
+			let lineText = someMouseEvent.target.parentNode.innerText;
+		} else {
+			let lineText = someMouseEvent.target.innerText;
+		}
+		console.log("The contents of the line are: " + lineText);
+
+		if (lineText != "") {
+			console.log("Checking for block:");
+			let lineBlockID = this.getBlock(lineText, currentNoteFile);
+			console.log(lineBlockID);
+	
+			if (this.getBlock(lineText, currentNoteFile) === "") { // The line is not already a block
+				console.log("This line is not currently a block. Adding a block ID.");
+				lineBlockID = this.createBlockHash(lineText).toString();
+				let lineWithBlock = lineText + " ^" + lineBlockID;
+				obsidianApp.vault.read(currentNoteFile).then(function (result) {
+					let previousNoteText = result;
+					let newNoteText = previousNoteText.replace(lineText, lineWithBlock);
+					obsidianApp.vault.modify(currentNoteFile, newNoteText);
+				})
+			}
+	
+			let newMaterial = linkPrefix + "[[" + noteLink + "#^" + lineBlockID + "]]";
+			console.log(newMaterial);
+			this.saveToWorkbench(newMaterial, "a link to the selected block");
+		} else {
+			new Notice("There is nothing on the selected line.");
+		}
+		
+
 	}
 
 	linkNoteInWorkbench() { // Saves a link to the current note to the workbench
@@ -225,29 +341,86 @@ export default class WorkbenchPlugin extends Plugin {
 		this.saveToWorkbench(newMaterial, "an embed of the current note");
 	}
 
-	linkSectionInWorkbench(someNoteTitleAndHeading: string) { // Saves a link to the current heading to the workbench
+	linkSectionInWorkbench() { // Saves a link to the current heading to the workbench
 		let obsidianApp = this.app;
 
 		// get the heading
-		let newMaterial = "[[" + someNoteTitleAndHeading + "]]";
+		let currentView = obsidianApp.workspace.activeLeaf.view;
+		let currentNoteFile = currentView.file;
+		let editor = currentView.sourceMode.cmEditor;
+		var cursor = editor.getCursor();
+		let lineText = editor.getLine(cursor.line);
+	
+		let currentLine = editor.doc.sel.ranges[0].anchor.line;
+
+		// Stuck here. For some reason the action only works once on some sections tktktk
+
+		let headings = obsidianApp.metadataCache.getFileCache(currentNoteFile).headings;
+		let sectionHeading;
+		console.log(headings);
+		if (!headings) { 
+			new Notice("No headings found in the current document.");
+			return;
+		} else { // check what heading is closest above the current line
+			for (let eachHeading of headings) {
+				let headingLineNumber = eachHeading.position.start.line;
+				if (headingLineNumber == currentLine) {
+					sectionHeading = eachHeading;
+					break;
+				} else if (headingLineNumber > currentLine) {
+					break;
+				}
+			sectionHeading = eachHeading;
+			}
+		}
+
+		
+		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
+
+		let newMaterial = "[[" + noteLink + "#" + sectionHeading.heading + "]]";
 		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current section");
 	}
 
-	embedSectionInWorkbench(someNoteTitleAndHeading: string) { // Saves an embed of the current heading to the workbench
+	embedSectionInWorkbench() { // Saves an embed of the current heading to the workbench
 		let obsidianApp = this.app;
-		// get the heading
-		let newMaterial = "![[" + someNoteTitleAndHeading + "]]";
-		console.log(newMaterial);
-		this.saveToWorkbench(newMaterial, "an embed of the current section");
-	}
 
-	copySectionIntoWorkbench(someNoteTitleAndHeading: string) { // Copies the content of the current section to the workbench
-		let obsidianApp = this.app;
-		// get the contents of the heading
-		let newMaterial = someNoteTitleAndHeading;
+		// get the heading
+		let currentView = obsidianApp.workspace.activeLeaf.view;
+		let currentNoteFile = currentView.file;
+		let editor = currentView.sourceMode.cmEditor;
+		var cursor = editor.getCursor();
+		let lineText = editor.getLine(cursor.line);
+	
+		let currentLine = editor.doc.sel.ranges[0].anchor.line;
+
+		// Stuck here. For some reason the action only works once on some sections tktktk
+
+		let headings = obsidianApp.metadataCache.getFileCache(currentNoteFile).headings;
+		let sectionHeading;
+		console.log(headings);
+		if (!headings) { 
+			new Notice("No headings found in the current document.");
+			return;
+		} else { // check what heading is closest above the current line
+			for (let eachHeading of headings) {
+				let headingLineNumber = eachHeading.position.start.line;
+				if (headingLineNumber == currentLine) {
+					sectionHeading = eachHeading;
+					break;
+				} else if (headingLineNumber > currentLine) {
+					break;
+				}
+			sectionHeading = eachHeading;
+			}
+		}
+
+		
+		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
+
+		let newMaterial = "![[" + noteLink + "#" + sectionHeading.heading + "]]";
 		console.log(newMaterial);
-		this.saveToWorkbench(newMaterial, "a copy of the current section");
+		this.saveToWorkbench(newMaterial, "a link to the current section");
 	}
 
 	linkBlockInWorkbench() { // Links the current block to the workbench
@@ -335,6 +508,8 @@ export default class WorkbenchPlugin extends Plugin {
 class WorkbenchSettings {
 	workbenchNoteName = "Workbench";
 	workbenchLinePrefix = "";
+	altClickType = "link";
+	metaAltClickType = "block";
 }
 
 class WorkbenchSettingTab extends PluginSettingTab {
@@ -370,5 +545,34 @@ class WorkbenchSettingTab extends PluginSettingTab {
 						plugin.saveData(plugin.settings);
 				}));
 
+		new Setting(containerEl)
+			.setName('Alt+Click type')
+			.setDesc('Set what happens when you alt+click on a link. Default is to copy the link into the Workbench.')
+			.addDropdown(dropDown =>
+				dropDown
+					.addOption("Link", "Link")
+					.addOption("Embed", "Embed")
+					.addOption("Nothing", "Nothing")
+					.setValue(plugin.settings.altClickType)
+					.onChange((value: string) => {
+						plugin.settings.altClickType = value;
+						plugin.saveData(plugin.settings);
+						this.display();
+				}));
+			
+		new Setting(containerEl)
+			.setName('Meta+Alt+Click type')
+			.setDesc('Set what happens when you cmd/ctrl+alt+click on a line. Default is to link the line as a block into the Workbench.')
+			.addDropdown(dropDown =>
+				dropDown
+					.addOption("Link", "Link")
+					.addOption("Embed", "Embed")
+					.addOption("Nothing", "Nothing")
+					.setValue(plugin.settings.metaAltClickType)
+					.onChange((value: string) => {
+						plugin.settings.metaAltClickType = value;
+						plugin.saveData(plugin.settings);
+						this.display();
+				}));
 	}
 }
