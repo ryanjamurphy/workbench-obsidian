@@ -156,11 +156,22 @@ export default class WorkbenchPlugin extends Plugin {
 			// callback: () => {
 			// 	console.log('Simple Callback');
 			// },
+			callback: () => { 
+				this.clearWorkbench();
+			}
+		});
+
+		this.addCommand({ 
+			id: 'insert-workbench',
+			name: 'Insert the contents of the workbench note.',
+			// callback: () => {
+			// 	console.log('Simple Callback');
+			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
 					if (!checking) {
-						this.clearWorkbench();
+						this.insertWorkbench();
 					}
 					return true;
 				}
@@ -204,6 +215,28 @@ export default class WorkbenchPlugin extends Plugin {
 		console.log('Unloading the Workbench plugin.');
 	}
 
+	insertWorkbench() {
+		let obsidianApp = this.app;
+		let workbenchNoteTitle = this.settings.workbenchNoteName;
+		let files = obsidianApp.vault.getFiles();
+			const workbenchNoteFile = files.filter(e => e.name === workbenchNoteTitle //hat-tip 🎩 to @MrJackPhil for this little workflow 
+				|| e.path === workbenchNoteTitle
+				|| e.basename === workbenchNoteTitle
+			)[0];
+		
+		let currentNoteFile = obsidianApp.workspace.activeLeaf.view.file;
+
+		let editor = obsidianApp.workspace.activeLeaf.view.sourceMode.cmEditor;
+		let cursor = editor.getCursor();
+		console.log(cursor);
+		let doc = editor.getDoc();
+
+		obsidianApp.vault.read(workbenchNoteFile).then(function (result) {
+			doc.replaceRange(result, cursor);
+			editor.focus();
+		});
+	}
+
 	clearWorkbench() {
 		let obsidianApp = this.app;
 		let workbenchNoteTitle = this.settings.workbenchNoteName;
@@ -213,7 +246,7 @@ export default class WorkbenchPlugin extends Plugin {
 				|| e.basename === workbenchNoteTitle
 			)[0];
 
-		obsidianApp.vault.modify(workbenchNoteFile, "# workbenchNoteTitle");
+		obsidianApp.vault.modify(workbenchNoteFile, "");
 	}
 
 	saveToWorkbench(theMaterial: string, saveAction: string) {
@@ -244,7 +277,7 @@ export default class WorkbenchPlugin extends Plugin {
 			obsidianApp.vault.read(workbenchNoteFile).then(function (result) {
 				let previousNoteText = result;
 				//console.log("Previous note text:\n" + previousNoteText);
-				let newNoteText = previousNoteText + "\n\n" + linePrefix + theMaterial;
+				let newNoteText = previousNoteText + "\n" + linePrefix + theMaterial;
 				obsidianApp.vault.modify(workbenchNoteFile, newNoteText);
 				new Notice("Added " + saveAction + " to the workbench.")
 			});
