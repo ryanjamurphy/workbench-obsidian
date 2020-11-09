@@ -8,6 +8,8 @@ Demo:
 
 [A demo of the various features of the plugin.](https://i.imgur.com/tG4dOvp.gif)
 
+Note: you may need to double-click when using the click-based features! 
+
 ### Settings
 Control the name of the Workbench note, the line prefix for every item added to the workbench, and what alt+click or cmd/windows+alt+click do in the plugin's Settings.
 
