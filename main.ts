@@ -159,7 +159,7 @@ export default class WorkbenchPlugin extends Plugin {
 		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
 			if (this.settings.altClickType != "Nothing") {
 				if (evt.altKey) {
-					if ((evt.target.className === "internal-link") || (evt.target.className === "cm-hmd-internal-link")) {
+					if ((evt.target.className === "internal-link") || (evt.target.className.includes("cm-hmd-internal-link"))) {
 						console.log("alt");
 						this.altClick(evt);
 					}
@@ -168,9 +168,12 @@ export default class WorkbenchPlugin extends Plugin {
 			if (this.settings.metaAltClickType != "Nothing") {
 				if (evt.metaKey && evt.altKey) {
 					console.log("click", evt);
-					if ((evt.target.className.includes("CodeMirror-line")) || evt.target.className.includes("cm")) {
+					if ((evt.target.className.includes("cm-hmd-internal-link"))) {
+						new Notice("Sorry, this doesn't work when you click directly on a link. Try clicking outside of the link!");
+					} else if ((evt.target.className.includes("CodeMirror-line")) || evt.target.className.includes("cm")) {
+						let currentFile = this.app.workspace.activeLeaf.view.file;
 						console.log("meta+alt");
-						this.metaAltClick(evt);
+						this.metaAltClick(evt, currentFile);
 					}
 				}
 			}
@@ -239,7 +242,6 @@ export default class WorkbenchPlugin extends Plugin {
 			for (let eachBlock in noteBlocks) { // iterate through the blocks. 
 				console.log("Checking block ^" + eachBlock);
 				let blockRegExp = new RegExp("(" + eachBlock + ")$", "gim");
-				console.log("The regexp is '" + blockRegExp);
 				if (inputLine.match(blockRegExp)) { // if end of inputLine matches block, return it
 					blockString = eachBlock;
 					console.log("Found block ^" + blockString);
@@ -265,13 +267,21 @@ export default class WorkbenchPlugin extends Plugin {
 		this.saveToWorkbench(newMaterial, "a link to the selected note");
 	}
 
-	metaAltClick(someMouseEvent: Event) {
+	metaAltClick(someMouseEvent: Event, activeFile: object) {
 		console.log("Meta alt click");
 
 		let obsidianApp = this.app;
 
+		let lineText = someMouseEvent.target.innerText;
+
+		if ((someMouseEvent.target.className.includes("cm"))) {
+			lineText = someMouseEvent.target.parentNode.innerText;
+		}
+
+		console.log("The contents of the line are: " + lineText);
+
 		// Get the file and create a link to it
-		let currentNoteFile = obsidianApp.workspace.activeLeaf.view.file;
+		let currentNoteFile = activeFile;
 		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
 
 		let clickType = this.settings.metaAltClickType;
@@ -282,21 +292,11 @@ export default class WorkbenchPlugin extends Plugin {
 			linkPrefix = "!";
 		}
 
-		// TKTKTK gotta find a way to get the list item's parent line
-
-		if ((someMouseEvent.target.className.includes("cm"))) {
-			let lineText = someMouseEvent.target.parentNode.innerText;
-		} else {
-			let lineText = someMouseEvent.target.innerText;
-		}
-		console.log("The contents of the line are: " + lineText);
-
 		if (lineText != "") {
+			
 			console.log("Checking for block:");
-			let lineBlockID = this.getBlock(lineText, currentNoteFile);
-			console.log(lineBlockID);
-	
 			if (this.getBlock(lineText, currentNoteFile) === "") { // The line is not already a block
+				lineText = lineText.trim();
 				console.log("This line is not currently a block. Adding a block ID.");
 				lineBlockID = this.createBlockHash(lineText).toString();
 				let lineWithBlock = lineText + " ^" + lineBlockID;
@@ -305,6 +305,9 @@ export default class WorkbenchPlugin extends Plugin {
 					let newNoteText = previousNoteText.replace(lineText, lineWithBlock);
 					obsidianApp.vault.modify(currentNoteFile, newNoteText);
 				})
+			} else {
+				let lineBlockID = this.getBlock(lineText, currentNoteFile);
+				console.log(lineBlockID);
 			}
 	
 			let newMaterial = linkPrefix + "[[" + noteLink + "#^" + lineBlockID + "]]";
@@ -508,8 +511,8 @@ export default class WorkbenchPlugin extends Plugin {
 class WorkbenchSettings {
 	workbenchNoteName = "Workbench";
 	workbenchLinePrefix = "";
-	altClickType = "link";
-	metaAltClickType = "block";
+	altClickType = "Link";
+	metaAltClickType = "Embed";
 }
 
 class WorkbenchSettingTab extends PluginSettingTab {
