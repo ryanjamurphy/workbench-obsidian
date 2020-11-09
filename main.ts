@@ -150,6 +150,24 @@ export default class WorkbenchPlugin extends Plugin {
 			}
 		});
 
+		this.addCommand({ 
+			id: 'clear-workbench',
+			name: 'Clear the workbench note.',
+			// callback: () => {
+			// 	console.log('Simple Callback');
+			// },
+			checkCallback: (checking: boolean) => { 
+				let leaf = this.app.workspace.activeLeaf;
+				if (leaf) {
+					if (!checking) {
+						this.clearWorkbench();
+					}
+					return true;
+				}
+				return false;
+			}
+		});
+
 		this.addSettingTab(new WorkbenchSettingTab(this.app, this));
 
 		/*this.registerEvent(this.app.on('codemirror', (cm: CodeMirror.Editor) => {
@@ -184,6 +202,18 @@ export default class WorkbenchPlugin extends Plugin {
 
 	onunload() {
 		console.log('Unloading the Workbench plugin.');
+	}
+
+	clearWorkbench() {
+		let obsidianApp = this.app;
+		let workbenchNoteTitle = this.settings.workbenchNoteName;
+		let files = obsidianApp.vault.getFiles();
+			const workbenchNoteFile = files.filter(e => e.name === workbenchNoteTitle //hat-tip 🎩 to @MrJackPhil for this little workflow 
+				|| e.path === workbenchNoteTitle
+				|| e.basename === workbenchNoteTitle
+			)[0];
+
+		obsidianApp.vault.modify(workbenchNoteFile, "# workbenchNoteTitle");
 	}
 
 	saveToWorkbench(theMaterial: string, saveAction: string) {
@@ -550,7 +580,7 @@ class WorkbenchSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Alt+Click type')
-			.setDesc('Set what happens when you alt+click on a link. Default is to copy the link into the Workbench.')
+			.setDesc('Set what happens when you alt+click on a link. Default is to copy the link into the Workbench. Note: if your cursor is not already on the targeted line, you may need to double-click!')
 			.addDropdown(dropDown =>
 				dropDown
 					.addOption("Link", "Link")
@@ -565,7 +595,7 @@ class WorkbenchSettingTab extends PluginSettingTab {
 			
 		new Setting(containerEl)
 			.setName('Meta+Alt+Click type')
-			.setDesc('Set what happens when you cmd/ctrl+alt+click on a line. Default is to link the line as a block into the Workbench.')
+			.setDesc('Set what happens when you cmd/ctrl+alt+click on a line. Default is to link the line as a block into the Workbench. Note: if your cursor is not already on the targeted line, you may need to double-click!')
 			.addDropdown(dropDown =>
 				dropDown
 					.addOption("Link", "Link")
