@@ -6,7 +6,7 @@ It allows you to capture thinking from whatever you're currently looking at into
 
 Demo:
 
-![A demo of the various features of the plugin.](https://i.imgur.com/tG4dOvp.gif)
+[A demo of the various features of the plugin.](https://i.imgur.com/tG4dOvp.gif)
 
 ### Settings
 Control the name of the Workbench note, the line prefix for every item added to the workbench, and what alt+click or cmd/windows+alt+click do in the plugin's Settings.
