@@ -6,7 +6,7 @@ It allows you to capture thinking from whatever you're currently looking at into
 
 ### Demo:
 
-![A demo of the various features of the plugin.](https://i.imgur.com/tG4dOvp.gif)
+[A demo of the various ways to add things to your workbench.](https://i.imgur.com/tG4dOvp.gif)
 
 Note: you may need to double-click when using the click-based features! 
 
