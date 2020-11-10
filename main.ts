@@ -349,38 +349,41 @@ export default class WorkbenchPlugin extends Plugin {
 
 		let clickType = this.settings.metaAltClickType;
 
-		let linkPrefix = "";
-
-		if (clickType === "Embed") {
-			linkPrefix = "!";
-		}
-
 		if (lineText != "") {
-			
-			console.log("Checking for block:");
-			if (this.getBlock(lineText, currentNoteFile) === "") { // The line is not already a block
-				lineText = lineText.trim();
-				console.log("This line is not currently a block. Adding a block ID.");
-				lineBlockID = this.createBlockHash(lineText).toString();
-				let lineWithBlock = lineText + " ^" + lineBlockID;
-				obsidianApp.vault.read(currentNoteFile).then(function (result) {
-					let previousNoteText = result;
-					let newNoteText = previousNoteText.replace(lineText, lineWithBlock);
-					obsidianApp.vault.modify(currentNoteFile, newNoteText);
-				})
+
+			if (clickType === "Copy") {
+				let newMaterial = lineText;
+				this.saveToWorkbench(newMaterial, "a copy of the selected line/block");
 			} else {
-				let lineBlockID = this.getBlock(lineText, currentNoteFile);
-				console.log(lineBlockID);
-			}
-	
-			let newMaterial = linkPrefix + "[[" + noteLink + "#^" + lineBlockID + "]]";
-			console.log(newMaterial);
-			this.saveToWorkbench(newMaterial, "a link to the selected block");
+				let linkPrefix = "";
+
+				if (clickType === "Embed") {
+					linkPrefix = "!";
+				}
+
+				console.log("Checking for block:");
+				if (this.getBlock(lineText, currentNoteFile) === "") { // The line is not already a block
+					lineText = lineText.trim();
+					console.log("This line is not currently a block. Adding a block ID.");
+					lineBlockID = this.createBlockHash(lineText).toString();
+					let lineWithBlock = lineText + " ^" + lineBlockID;
+					obsidianApp.vault.read(currentNoteFile).then(function (result) {
+						let previousNoteText = result;
+						let newNoteText = previousNoteText.replace(lineText, lineWithBlock);
+						obsidianApp.vault.modify(currentNoteFile, newNoteText);
+					})
+				} else {
+					let lineBlockID = this.getBlock(lineText, currentNoteFile);
+					console.log(lineBlockID);
+				}
+		
+				let newMaterial = linkPrefix + "[[" + noteLink + "#^" + lineBlockID + "]]";
+				console.log(newMaterial);
+				this.saveToWorkbench(newMaterial, "a link to the selected line/block");
+			} 
 		} else {
 			new Notice("There is nothing on the selected line.");
 		}
-		
-
 	}
 
 	linkNoteInWorkbench() { // Saves a link to the current note to the workbench
@@ -616,8 +619,8 @@ class WorkbenchSettingTab extends PluginSettingTab {
 			.setDesc('Set what happens when you alt+click on a link. Default is to copy the link into the Workbench. Note: if your cursor is not already on the targeted line, you may need to double-click!')
 			.addDropdown(dropDown =>
 				dropDown
-					.addOption("Link", "Link")
-					.addOption("Embed", "Embed")
+					.addOption("Link", "Link selected note in Workbench")
+					.addOption("Embed", "Embed selected note in Workbench")
 					.addOption("Nothing", "Nothing")
 					.setValue(plugin.settings.altClickType)
 					.onChange((value: string) => {
@@ -631,8 +634,9 @@ class WorkbenchSettingTab extends PluginSettingTab {
 			.setDesc('Set what happens when you cmd/ctrl+alt+click on a line. Default is to link the line as a block into the Workbench. Note: if your cursor is not already on the targeted line, you may need to double-click!')
 			.addDropdown(dropDown =>
 				dropDown
-					.addOption("Link", "Link")
-					.addOption("Embed", "Embed")
+					.addOption("Link", "Link block")
+					.addOption("Embed", "Embed block")
+					.addOption("Copy", "Copy line")
 					.addOption("Nothing", "Nothing")
 					.setValue(plugin.settings.metaAltClickType)
 					.onChange((value: string) => {
