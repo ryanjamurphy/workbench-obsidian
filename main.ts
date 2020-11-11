@@ -240,6 +240,8 @@ export default class WorkbenchPlugin extends Plugin {
 	clearWorkbench() {
 		let obsidianApp = this.app;
 		let workbenchNoteTitle = this.settings.workbenchNoteName;
+		let editor = obsidianApp.workspace.activeLeaf.view.sourceMode.cmEditor;
+		let cursor = editor.getCursor();
 		let files = obsidianApp.vault.getFiles();
 			const workbenchNoteFile = files.filter(e => e.name === workbenchNoteTitle //hat-tip 🎩 to @MrJackPhil for this little workflow 
 				|| e.path === workbenchNoteTitle
@@ -247,10 +249,14 @@ export default class WorkbenchPlugin extends Plugin {
 			)[0];
 
 		obsidianApp.vault.modify(workbenchNoteFile, "");
+		editor.setCursor(cursor);
+		editor.focus();
 	}
 
 	saveToWorkbench(theMaterial: string, saveAction: string) {
 		let obsidianApp = this.app;
+		let editor = obsidianApp.workspace.activeLeaf.view.sourceMode.cmEditor;
+		let cursor = editor.getCursor();
 
 		let linePrefix = this.settings.workbenchLinePrefix;
 
@@ -282,6 +288,8 @@ export default class WorkbenchPlugin extends Plugin {
 				new Notice("Added " + saveAction + " to the workbench.")
 			});
 		}
+		editor.setCursor(cursor);
+		editor.focus();
 	}
 
 	createBlockHash(inputText: string): string { // Credit to https://stackoverflow.com/a/1349426
