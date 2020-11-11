@@ -405,21 +405,17 @@ export default class WorkbenchPlugin extends Plugin {
 		let newMaterial = "[[" + noteLink + "]]";
 		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current note");
-		editor.focus();
 	}
 
 	embedNoteInWorkbench() { // Saves an embed of the current note to the workbench
 		let obsidianApp = this.app;
 		// Get the file and create a link to it
-		let currentView = obsidianApp.workspace.activeLeaf.view;
 		let currentNoteFile = obsidianApp.workspace.activeLeaf.view.file;
 		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
-		let editor = currentView.sourceMode.cmEditor;
 		
 		let newMaterial = "![[" + noteLink + "]]";
 		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "an embed of the current note");
-		editor.focus();
 	}
 
 	linkSectionInWorkbench() { // Saves a link to the current heading to the workbench
@@ -430,7 +426,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let currentNoteFile = currentView.file;
 		let editor = currentView.sourceMode.cmEditor;
 		var cursor = editor.getCursor();
-		let lineText = editor.getLine(cursor.line);
 	
 		let currentLine = editor.doc.sel.ranges[0].anchor.line;
 
@@ -461,7 +456,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let newMaterial = "[[" + noteLink + "#" + sectionHeading.heading + "]]";
 		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current section");
-		editor.focus();
 	}
 
 	embedSectionInWorkbench() { // Saves an embed of the current heading to the workbench
@@ -472,7 +466,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let currentNoteFile = currentView.file;
 		let editor = currentView.sourceMode.cmEditor;
 		var cursor = editor.getCursor();
-		let lineText = editor.getLine(cursor.line);
 	
 		let currentLine = editor.doc.sel.ranges[0].anchor.line;
 
@@ -503,7 +496,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let newMaterial = "![[" + noteLink + "#" + sectionHeading.heading + "]]";
 		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current section");
-		editor.focus();
 	}
 
 	linkBlockInWorkbench() { // Links the current block to the workbench
@@ -537,7 +529,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let newMaterial = "[[" + noteLink + "#^" + lineBlockID + "]]";
 		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current block");
-		editor.focus();
 	}
 
 	embedBlockInWorkbench() { // Saves an embed of the current block to the workbench
@@ -571,22 +562,20 @@ export default class WorkbenchPlugin extends Plugin {
 		let newMaterial = "![[" + noteLink + "#^" + lineBlockID + "]]";
 		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current block");
-		editor.focus();
 	}
 
 	copyBlockIntoWorkbench() { // Copies the content of the current block to the workbench
 		let obsidianApp = this.app;
 
 		let currentView = obsidianApp.workspace.activeLeaf.view;
-		let cm = currentView.sourceMode.cmEditor;
-		var cursor = cm.getCursor();
-		let lineText = cm.getLine(cursor.line);
+		let editor = currentView.sourceMode.cmEditor;
+		var cursor = editor.getCursor();
+		let lineText = editor.getLine(cursor.line);
 		console.log(lineText);
 
 		let newMaterial = lineText;
 		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a copy of the current block");
-		cm.focus()
 	}
 
 }
