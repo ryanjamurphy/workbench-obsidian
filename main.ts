@@ -115,6 +115,24 @@ export default class WorkbenchPlugin extends Plugin {
 		});
 
 		this.addCommand({ 
+			id: 'workbench-copy-and-link-current-block',
+			name: 'Copy the current line its block-link into your Workbench.',
+			// callback: () => {
+			// 	console.log('Simple Callback');
+			// },
+			checkCallback: (checking: boolean) => { 
+				let leaf = this.app.workspace.activeLeaf;
+				if (leaf) {
+					if (!checking) {
+						this.copyLineAndLinkToBlock();
+					}
+					return true;
+				}
+				return false;
+			}
+		});
+
+		this.addCommand({ 
 			id: 'workbench-link-current-section',
 			name: 'Link the current heading/section into your Workbench.',
 			// callback: () => {
@@ -576,6 +594,46 @@ export default class WorkbenchPlugin extends Plugin {
 		let newMaterial = lineText;
 		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a copy of the current block");
+	}
+
+	copyLineAndLinkToBlock() { // Copies the content of the current block to the workbench
+		let obsidianApp = this.app;
+
+		let currentView = obsidianApp.workspace.activeLeaf.view;
+		let currentNoteFile = currentView.file;
+		let editor = currentView.sourceMode.cmEditor;
+		var cursor = editor.getCursor();
+		let lineText = editor.getLine(cursor.line);
+		console.log(lineText);
+
+		//trim block text tktktk
+
+		let blockIDRegex = new RegExp("/(\s){0,1}[\^]{1}([a-zA-Z0-9\-]+)$/", "gim");
+
+		let lineTextWithoutBlockID = lineText.replace(blockIDRegex, "");
+
+		console.log("Checking for block:");
+		let lineBlockID = this.getBlock(lineText, currentNoteFile);
+		console.log(lineBlockID);
+
+		if (this.getBlock(lineText, currentNoteFile) === "") { // The line is not already a block
+			console.log("This line is not currently a block. Adding a block ID.");
+			lineBlockID = this.createBlockHash(lineText).toString();
+			let lineWithBlock = lineText + " ^" + lineBlockID;
+			obsidianApp.vault.read(currentNoteFile).then(function (result) {
+				let previousNoteText = result;
+				let newNoteText = previousNoteText.replace(lineText, lineWithBlock);
+				obsidianApp.vault.modify(currentNoteFile, newNoteText);
+			})
+		}
+
+		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
+
+		let encodedNoteLink = encodeURIComponent(noteLink);
+
+		let newMaterial = "[" + lineTextWithoutBlockID + "]" + "(" + encodedNoteLink + "#^" + lineBlockID + ")";
+		console.log(newMaterial);
+		this.saveToWorkbench(newMaterial, "a linked copy of the current block");
 	}
 
 }
