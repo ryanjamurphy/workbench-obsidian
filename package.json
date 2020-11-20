@@ -1,6 +1,6 @@
 {
   "name": "workbench-obsidian",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Keep a workbench of knowledge materials.",
   "main": "main.js",
   "scripts": {

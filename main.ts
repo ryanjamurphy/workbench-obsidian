@@ -1,5 +1,5 @@
 import { Hash } from 'crypto';
-import { App, MarkdownPreviewView, Modal, Notice, Plugin, PluginSettingTab, Setting, ValueComponent } from 'obsidian';
+import { App, MarkdownPreviewView, Notice, Plugin, PluginSettingTab, Setting, ToggleComponent } from 'obsidian';
 
 export default class WorkbenchPlugin extends Plugin {
 	settings: WorkbenchSettings;
@@ -214,7 +214,6 @@ export default class WorkbenchPlugin extends Plugin {
 			}
 			if (this.settings.metaAltClickType != "Nothing") {
 				if (evt.metaKey && evt.altKey) {
-					console.log("click", evt);
 					if ((evt.target.className.includes("cm-hmd-internal-link"))) {
 						new Notice("Sorry, this doesn't work when you click directly on a link. Try clicking outside of the link!");
 					} else if ((evt.target.className.includes("CodeMirror-line")) || evt.target.className.includes("cm")) {
@@ -225,8 +224,6 @@ export default class WorkbenchPlugin extends Plugin {
 				}
 			}
 		});
-
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
 
 	onunload() {
@@ -275,6 +272,7 @@ export default class WorkbenchPlugin extends Plugin {
 		let obsidianApp = this.app;
 		let editor = obsidianApp.workspace.activeLeaf.view.sourceMode.cmEditor;
 		let cursor = editor.getCursor();
+		let blankLine = this.settings.includeBlankLine;
 
 		let linePrefix = this.settings.workbenchLinePrefix;
 
@@ -301,7 +299,11 @@ export default class WorkbenchPlugin extends Plugin {
 			obsidianApp.vault.read(workbenchNoteFile).then(function (result) {
 				let previousNoteText = result;
 				//console.log("Previous note text:\n" + previousNoteText);
-				let newNoteText = previousNoteText + "\n" + linePrefix + theMaterial;
+				let lineSpacing = "\n";
+				if (blankLine) {
+					lineSpacing = "\n\n";
+				}
+				let newNoteText = previousNoteText + lineSpacing + linePrefix + theMaterial;
 				obsidianApp.vault.modify(workbenchNoteFile, newNoteText);
 				new Notice("Added " + saveAction + " to the workbench.")
 			});
@@ -643,6 +645,7 @@ class WorkbenchSettings {
 	workbenchLinePrefix = "";
 	altClickType = "Link";
 	metaAltClickType = "Embed";
+	includeBlankLine = false;
 }
 
 class WorkbenchSettingTab extends PluginSettingTab {
@@ -677,6 +680,18 @@ class WorkbenchSettingTab extends PluginSettingTab {
 						plugin.settings.workbenchLinePrefix = value;
 						plugin.saveData(plugin.settings);
 				}));
+		
+		new Setting(containerEl)
+			.setName('Blank lines')
+			.setDesc('Toggle whether there should be a blank line between each Workbench entry.')
+			.addToggle((toggle) => {
+				toggle.setValue(plugin.settings.includeBlankLine);
+				toggle.onChange(async (value) => {
+					plugin.settings.includeBlankLine = value;
+					console.log("Include blank lines between entries:" + value);
+				  	plugin.saveData(plugin.settings);
+				});
+			});
 
 		new Setting(containerEl)
 			.setName('Alt+Click type')
