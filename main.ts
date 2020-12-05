@@ -1,5 +1,5 @@
 import { Hash } from 'crypto';
-import { App, MarkdownPreviewView, Notice, Plugin, PluginSettingTab, Setting, ToggleComponent } from 'obsidian';
+import { App, MarkdownPreviewView, Notice, Plugin, PluginSettingTab, Setting, ToggleComponent, FuzzySuggestModal, SuggestModal, TFile } from 'obsidian';
 
 export default class WorkbenchPlugin extends Plugin {
 	settings: WorkbenchSettings;
@@ -190,6 +190,24 @@ export default class WorkbenchPlugin extends Plugin {
 				if (leaf) {
 					if (!checking) {
 						this.insertWorkbench();
+					}
+					return true;
+				}
+				return false;
+			}
+		});
+
+		this.addCommand({ 
+			id: 'choose-new-workbench',
+			name: 'Change your Workbench.',
+			// callback: () => {
+			// 	console.log('Simple Callback');
+			// },
+			checkCallback: (checking: boolean) => { 
+				let leaf = this.app.workspace.activeLeaf;
+				if (leaf) {
+					if (!checking) {
+						this.changeWorkbench();
 					}
 					return true;
 				}
@@ -638,6 +656,38 @@ export default class WorkbenchPlugin extends Plugin {
 		this.saveToWorkbench(newMaterial, "a linked copy of the current block");
 	}
 
+	changeWorkbench() {
+		let obsidianApp = this.app;
+
+		new workbenchNameModal(obsidianApp).open();
+	}
+
+}
+
+class workbenchNameModal extends FuzzySuggestModal<string> { // thanks to Licat for the assist!
+	app: App;
+
+    constructor(app: App) {
+        super(app);
+		this.app = app;
+    }
+
+    getItems(): string[] {
+		let files = this.app.vault.getMarkdownFiles();
+		let fileList = files.map(file => file.name);
+        return fileList;
+    }
+
+    getItemText(item: string): string {
+        return item;
+    }
+
+    onChooseItem(item: string, evt: MouseEvent | KeyboardEvent): void {
+		let workbenchPlugin = this.app.plugins.getPlugin("workbench-obsidian");
+		workbenchPlugin.settings.workbenchNoteName = item;
+		workbenchPlugin.saveData(workbenchPlugin.settings);
+		new Notice("Your workbench is now " + item);
+    }
 }
 
 class WorkbenchSettings {
