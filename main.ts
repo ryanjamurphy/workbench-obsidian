@@ -116,7 +116,7 @@ export default class WorkbenchPlugin extends Plugin {
 
 		this.addCommand({ 
 			id: 'workbench-copy-and-link-current-block',
-			name: 'Copy the current line its block-link into your Workbench.',
+			name: 'Copy the current line/block into your Workbench as a markdown link to the line/block.',
 			// callback: () => {
 			// 	console.log('Simple Callback');
 			// },
@@ -201,7 +201,7 @@ export default class WorkbenchPlugin extends Plugin {
 			id: 'choose-new-workbench',
 			name: 'Change your Workbench.',
 			// callback: () => {
-			// 	console.log('Simple Callback');
+				// 	console.log('Simple Callback');
 			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
