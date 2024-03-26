@@ -326,12 +326,10 @@ export default class WorkbenchPlugin extends Plugin {
 	metaAltClick(someMouseEvent: Event, activeFile: object) {
 
 		let obsidianApp = this.app;
+		let editor = obsidianApp.workspace.activeLeaf.view.sourceMode.cmEditor;
 
-		let lineText = someMouseEvent.target.innerText;
-
-		if ((someMouseEvent.target.className.includes("cm"))) {
-			lineText = someMouseEvent.target.parentNode.innerText;
-		}
+		let lineNumber = editor.getCursor().line;
+		let lineText = editor.getLine(lineNumber);
 
 
 		// Get the file and create a link to it
@@ -354,7 +352,7 @@ export default class WorkbenchPlugin extends Plugin {
 
 				if (this.getBlock(lineText, currentNoteFile) === "") { // The line is not already a block
 					lineText = lineText.trim();
-					lineBlockID = this.createBlockHash(lineText).toString();
+					let lineBlockID = this.createBlockHash(lineText).toString();
 					let lineWithBlock = lineText + " ^" + lineBlockID;
 					obsidianApp.vault.read(currentNoteFile).then(function (result) {
 						let previousNoteText = result;
