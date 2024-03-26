@@ -5,7 +5,6 @@ export default class WorkbenchPlugin extends Plugin {
 	settings: WorkbenchSettings;
 
 	async onload() {
-		console.log('Loading the Workbench plugin.');
 		
 		//load data from saved settings
 		this.settings = (await this.loadData()) || new WorkbenchSettings();
@@ -27,9 +26,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({
 			id: 'workbench-link-current-note',
 			name: 'Link the current note/page in your Workbench.',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
@@ -45,9 +41,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({ 
 			id: 'workbench-embed-current-note',
 			name: 'Embed the current note/page in your Workbench.',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
@@ -63,9 +56,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({ 
 			id: 'workbench-link-current-block',
 			name: 'Link the current line/block in your Workbench.',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
@@ -81,9 +71,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({ 
 			id: 'workbench-embed-current-block',
 			name: 'Embed the current line/block into your Workbench.',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
@@ -99,9 +86,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({ 
 			id: 'workbench-copy-current-block',
 			name: 'Copy the current line/block into your Workbench.',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
@@ -117,9 +101,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({ 
 			id: 'workbench-copy-and-link-current-block',
 			name: 'Copy the current line/block into your Workbench as a markdown link to the line/block.',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
@@ -135,9 +116,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({ 
 			id: 'workbench-link-current-section',
 			name: 'Link the current heading/section into your Workbench.',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
@@ -153,9 +131,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({ 
 			id: 'workbench-embed-current-section',
 			name: 'Embed the current heading/section into your Workbench.',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
@@ -171,9 +146,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({ 
 			id: 'clear-workbench',
 			name: 'Clear the workbench note.',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
 			callback: () => { 
 				this.clearWorkbench();
 			}
@@ -182,9 +154,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({ 
 			id: 'insert-workbench',
 			name: 'Insert the contents of the workbench note.',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
@@ -200,9 +169,6 @@ export default class WorkbenchPlugin extends Plugin {
 		this.addCommand({ 
 			id: 'choose-new-workbench',
 			name: 'Change your Workbench.',
-			// callback: () => {
-				// 	console.log('Simple Callback');
-			// },
 			checkCallback: (checking: boolean) => { 
 				let leaf = this.app.workspace.activeLeaf;
 				if (leaf) {
@@ -217,15 +183,10 @@ export default class WorkbenchPlugin extends Plugin {
 
 		this.addSettingTab(new WorkbenchSettingTab(this.app, this));
 
-		/*this.registerEvent(this.app.on('codemirror', (cm: CodeMirror.Editor) => {
-			console.log('codemirror', cm);
-		})); */
-
 		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
 			if (this.settings.altClickType != "Nothing") {
 				if (evt.altKey) {
 					if ((evt.target.className === "internal-link") || (evt.target.className.includes("cm-hmd-internal-link"))) {
-						console.log("alt");
 						this.altClick(evt);
 					}
 				}
@@ -236,7 +197,6 @@ export default class WorkbenchPlugin extends Plugin {
 						new Notice("Sorry, this doesn't work when you click directly on a link. Try clicking outside of the link!");
 					} else if ((evt.target.className.includes("CodeMirror-line")) || evt.target.className.includes("cm")) {
 						let currentFile = this.app.workspace.activeLeaf.view.file;
-						console.log("meta+alt");
 						this.metaAltClick(evt, currentFile);
 					}
 				}
@@ -261,7 +221,6 @@ export default class WorkbenchPlugin extends Plugin {
 
 		let editor = obsidianApp.workspace.activeLeaf.view.sourceMode.cmEditor;
 		let cursor = editor.getCursor();
-		console.log(cursor);
 		let doc = editor.getDoc();
 
 		obsidianApp.vault.read(workbenchNoteFile).then(function (result) {
@@ -293,9 +252,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let blankLine = this.settings.includeBlankLine;
 
 		let linePrefix = this.settings.workbenchLinePrefix;
-
-		console.log(linePrefix + theMaterial);
-
 		let workbenchNoteTitle = this.settings.workbenchNoteName;
 
 		let files = obsidianApp.vault.getFiles();
@@ -304,19 +260,13 @@ export default class WorkbenchPlugin extends Plugin {
 				|| e.basename === workbenchNoteTitle
 			)[0];
 
-		console.log("Workbench note:" + workbenchNoteFile);
-
 		if (!workbenchNoteFile) {
-			console.log("The workbench note does not already exist. Creating it, then appending the new content to it.");
-
 			let noteText = linePrefix + theMaterial;
 			let newWorkbenchFile = obsidianApp.vault.create(workbenchNoteTitle + ".md", noteText);
 		} else { // The file exists 
-			console.log("The workbench note already exists. Appending the new content to it.");
 			let previousNoteText = "";
 			obsidianApp.vault.read(workbenchNoteFile).then(function (result) {
 				let previousNoteText = result;
-				//console.log("Previous note text:\n" + previousNoteText);
 				let lineSpacing = "\n";
 				if (blankLine) {
 					lineSpacing = "\n\n";
@@ -345,15 +295,12 @@ export default class WorkbenchPlugin extends Plugin {
 	getBlock(inputLine: string, noteFile: object): string { //Returns the string of a block ID if block is found, or "" if not.
 		let obsidianApp = this.app;
 		let noteBlocks = obsidianApp.metadataCache.getFileCache(noteFile).blocks;
-		console.log("Checking if line '" + inputLine + "' is a block.");
 		let blockString = "";
 		if (noteBlocks) { // the file does contain blocks. If not, return ""
 			for (let eachBlock in noteBlocks) { // iterate through the blocks. 
-				console.log("Checking block ^" + eachBlock);
 				let blockRegExp = new RegExp("(" + eachBlock + ")$", "gim");
 				if (inputLine.match(blockRegExp)) { // if end of inputLine matches block, return it
 					blockString = eachBlock;
-					console.log("Found block ^" + blockString);
 					return blockString;
 				} 
 			}
@@ -377,7 +324,6 @@ export default class WorkbenchPlugin extends Plugin {
 	}
 
 	metaAltClick(someMouseEvent: Event, activeFile: object) {
-		console.log("Meta alt click");
 
 		let obsidianApp = this.app;
 
@@ -387,7 +333,6 @@ export default class WorkbenchPlugin extends Plugin {
 			lineText = someMouseEvent.target.parentNode.innerText;
 		}
 
-		console.log("The contents of the line are: " + lineText);
 
 		// Get the file and create a link to it
 		let currentNoteFile = activeFile;
@@ -407,10 +352,8 @@ export default class WorkbenchPlugin extends Plugin {
 					linkPrefix = "!";
 				}
 
-				console.log("Checking for block:");
 				if (this.getBlock(lineText, currentNoteFile) === "") { // The line is not already a block
 					lineText = lineText.trim();
-					console.log("This line is not currently a block. Adding a block ID.");
 					lineBlockID = this.createBlockHash(lineText).toString();
 					let lineWithBlock = lineText + " ^" + lineBlockID;
 					obsidianApp.vault.read(currentNoteFile).then(function (result) {
@@ -420,11 +363,9 @@ export default class WorkbenchPlugin extends Plugin {
 					})
 				} else {
 					let lineBlockID = this.getBlock(lineText, currentNoteFile);
-					console.log(lineBlockID);
 				}
 		
 				let newMaterial = linkPrefix + "[[" + noteLink + "#^" + lineBlockID + "]]";
-				console.log(newMaterial);
 				this.saveToWorkbench(newMaterial, "a link to the selected line/block");
 			} 
 		} else {
@@ -441,7 +382,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let editor = currentView.sourceMode.cmEditor;
 		
 		let newMaterial = "[[" + noteLink + "]]";
-		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current note");
 	}
 
@@ -452,7 +392,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
 		
 		let newMaterial = "![[" + noteLink + "]]";
-		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "an embed of the current note");
 	}
 
@@ -471,7 +410,6 @@ export default class WorkbenchPlugin extends Plugin {
 
 		let headings = obsidianApp.metadataCache.getFileCache(currentNoteFile).headings;
 		let sectionHeading;
-		console.log(headings);
 		if (!headings) { 
 			new Notice("No headings found in the current document.");
 			return;
@@ -492,7 +430,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
 
 		let newMaterial = "[[" + noteLink + "#" + sectionHeading.heading + "]]";
-		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current section");
 	}
 
@@ -511,7 +448,6 @@ export default class WorkbenchPlugin extends Plugin {
 
 		let headings = obsidianApp.metadataCache.getFileCache(currentNoteFile).headings;
 		let sectionHeading;
-		console.log(headings);
 		if (!headings) { 
 			new Notice("No headings found in the current document.");
 			return;
@@ -532,7 +468,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
 
 		let newMaterial = "![[" + noteLink + "#" + sectionHeading.heading + "]]";
-		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current section");
 	}
 
@@ -545,14 +480,9 @@ export default class WorkbenchPlugin extends Plugin {
 		let editor = currentView.sourceMode.cmEditor;
 		var cursor = editor.getCursor();
 		let lineText = editor.getLine(cursor.line);
-		console.log(lineText);
-
-		console.log("Checking for block:");
 		let lineBlockID = this.getBlock(lineText, currentNoteFile);
-		console.log(lineBlockID);
 
 		if (this.getBlock(lineText, currentNoteFile) === "") { // The line is not already a block
-			console.log("This line is not currently a block. Adding a block ID.");
 			lineBlockID = this.createBlockHash(lineText).toString();
 			let lineWithBlock = lineText + " ^" + lineBlockID;
 			obsidianApp.vault.read(currentNoteFile).then(function (result) {
@@ -565,7 +495,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
 
 		let newMaterial = "[[" + noteLink + "#^" + lineBlockID + "]]";
-		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current block");
 	}
 
@@ -578,14 +507,10 @@ export default class WorkbenchPlugin extends Plugin {
 		let editor = currentView.sourceMode.cmEditor;
 		var cursor = editor.getCursor();
 		let lineText = editor.getLine(cursor.line);
-		console.log(lineText);
 
-		console.log("Checking for block:");
 		let lineBlockID = this.getBlock(lineText, currentNoteFile);
-		console.log(lineBlockID);
 
 		if (this.getBlock(lineText, currentNoteFile) === "") { // The line is not already a block
-			console.log("This line is not currently a block. Adding a block ID.");
 			lineBlockID = this.createBlockHash(lineText).toString();
 			let lineWithBlock = lineText + " ^" + lineBlockID;
 			obsidianApp.vault.read(currentNoteFile).then(function (result) {
@@ -598,7 +523,6 @@ export default class WorkbenchPlugin extends Plugin {
 		let noteLink = obsidianApp.metadataCache.fileToLinktext(currentNoteFile, currentNoteFile.path, true);
 
 		let newMaterial = "![[" + noteLink + "#^" + lineBlockID + "]]";
-		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a link to the current block");
 	}
 
@@ -609,10 +533,8 @@ export default class WorkbenchPlugin extends Plugin {
 		let editor = currentView.sourceMode.cmEditor;
 		var cursor = editor.getCursor();
 		let lineText = editor.getLine(cursor.line);
-		console.log(lineText);
 
 		let newMaterial = lineText;
-		console.log(newMaterial);
 		this.saveToWorkbench(newMaterial, "a copy of the current block");
 	}
 
@@ -624,17 +546,12 @@ export default class WorkbenchPlugin extends Plugin {
 		let editor = currentView.sourceMode.cmEditor;
 		var cursor = editor.getCursor();
 		let lineText = editor.getLine(cursor.line);
-		console.log(lineText);
-
-		//trim block text tktktk
 
 		let blockIDRegex = new RegExp("/(\s){0,1}[\^]{1}([a-zA-Z0-9\-]+)$/", "gim");
 
 		let lineTextWithoutBlockID = lineText.replace(blockIDRegex, "");
 
-		console.log("Checking for block:");
 		let lineBlockID = this.getBlock(lineText, currentNoteFile);
-		console.log(lineBlockID);
 
 		if (this.getBlock(lineText, currentNoteFile) === "") { // The line is not already a block
 			console.log("This line is not currently a block. Adding a block ID.");
@@ -652,7 +569,7 @@ export default class WorkbenchPlugin extends Plugin {
 		let encodedNoteLink = encodeURIComponent(noteLink);
 
 		let newMaterial = "[" + lineTextWithoutBlockID + "]" + "(" + encodedNoteLink + "#^" + lineBlockID + ")";
-		console.log(newMaterial);
+		
 		this.saveToWorkbench(newMaterial, "a linked copy of the current block");
 	}
 
@@ -738,7 +655,6 @@ class WorkbenchSettingTab extends PluginSettingTab {
 				toggle.setValue(plugin.settings.includeBlankLine);
 				toggle.onChange(async (value) => {
 					plugin.settings.includeBlankLine = value;
-					console.log("Include blank lines between entries:" + value);
 				  	plugin.saveData(plugin.settings);
 				});
 			});
