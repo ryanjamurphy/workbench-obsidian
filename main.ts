@@ -404,7 +404,9 @@ export default class WorkbenchPlugin extends Plugin {
 		let editor = currentView.sourceMode.cmEditor;
 		var cursor = editor.getCursor();
 	
-		let currentLine = editor.doc.sel.ranges[0].anchor.line;
+		let currentLine = editor.getLine(cursor.line);
+
+		console.log(currentLine);
 
 		// Stuck here. For some reason the action only works once on some sections tktktk
 
@@ -442,7 +444,7 @@ export default class WorkbenchPlugin extends Plugin {
 		let editor = currentView.sourceMode.cmEditor;
 		var cursor = editor.getCursor();
 	
-		let currentLine = editor.doc.sel.ranges[0].anchor.line;
+		let currentLine = editor.getLine(cursor.line);
 
 		// Stuck here. For some reason the action only works once on some sections tktktk
 
@@ -569,7 +571,7 @@ export default class WorkbenchPlugin extends Plugin {
 		let encodedNoteLink = encodeURIComponent(noteLink);
 
 		let newMaterial = "[" + lineTextWithoutBlockID + "]" + "(" + encodedNoteLink + "#^" + lineBlockID + ")";
-		
+
 		this.saveToWorkbench(newMaterial, "a linked copy of the current block");
 	}
 
