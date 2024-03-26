@@ -403,10 +403,8 @@ export default class WorkbenchPlugin extends Plugin {
 		let currentNoteFile = currentView.file;
 		let editor = currentView.sourceMode.cmEditor;
 		var cursor = editor.getCursor();
-	
-		let currentLine = editor.getLine(cursor.line);
 
-		console.log(currentLine);
+		let currentLineNumber = cursor.line;
 
 		// Stuck here. For some reason the action only works once on some sections tktktk
 
@@ -418,10 +416,14 @@ export default class WorkbenchPlugin extends Plugin {
 		} else { // check what heading is closest above the current line
 			for (let eachHeading of headings) {
 				let headingLineNumber = eachHeading.position.start.line;
-				if (headingLineNumber == currentLine) {
+				if (headingLineNumber > currentLineNumber) {
+					new Notice("All headings are below the cursor. Link the note or a block instead.")
+					return;
+				}
+				if (headingLineNumber == currentLineNumber) {
 					sectionHeading = eachHeading;
 					break;
-				} else if (headingLineNumber > currentLine) {
+				} else if (headingLineNumber > currentLineNumber) {
 					break;
 				}
 			sectionHeading = eachHeading;
@@ -444,7 +446,9 @@ export default class WorkbenchPlugin extends Plugin {
 		let editor = currentView.sourceMode.cmEditor;
 		var cursor = editor.getCursor();
 	
-		let currentLine = editor.getLine(cursor.line);
+		let currentLineNumber = cursor.line;
+
+		console.log(currentLineNumber)
 
 		// Stuck here. For some reason the action only works once on some sections tktktk
 
@@ -456,10 +460,14 @@ export default class WorkbenchPlugin extends Plugin {
 		} else { // check what heading is closest above the current line
 			for (let eachHeading of headings) {
 				let headingLineNumber = eachHeading.position.start.line;
-				if (headingLineNumber == currentLine) {
+				if (headingLineNumber > currentLineNumber) {
+					new Notice("All headings are below the cursor. Embed the note or a block instead.")
+					return;
+				}
+				if (headingLineNumber == currentLineNumber) {
 					sectionHeading = eachHeading;
 					break;
-				} else if (headingLineNumber > currentLine) {
+				} else if (headingLineNumber > currentLineNumber) {
 					break;
 				}
 			sectionHeading = eachHeading;
